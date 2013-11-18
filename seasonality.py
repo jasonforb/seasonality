@@ -4,50 +4,39 @@ import sys
 import csv
 from collections import OrderedDict
 
-class Sighting:
-    def __init__(self, fields, namefield, datefield, startmonth, endmonth, segments):
-        self.name = fields[namefield - 1]
-        sdate = fields[datefield - 1]
-        self.month, self.day, self.year = sdate.split("/")
-        self.startmonth = startmonth
-        self.endmonth = endmonth
-        self.segments = segments
-        
-    def cell(self):
-        return (int(self.month)-self.startmonth)*self.segments + self.monthsegment()
-        
-    def __str__(self):
-        return "%s (%s-%s-%s) %s" % (self.name, self.day, self.month, self.year, self.cell())
-        
-    def monthsegment(self):
-        self.day = int(self.day)
-        segment = (self.day-1) / (self.segments - 1)
-        if segment >= self.segments: # count partial end of months as part of last bit of previous segment
-            segment -= 1
-        return segment
-        
-def NumberOfCells(start, end, numberofsegments):
-    return (end - start + 1) * numberofsegments
+
+def getsegment(day, segments):
+    # does not work for 8, 9, 11, 12, 13 (and anything greater than 15)
+    divisor = 32 - (31 % segments) 
+    s = day*segments / divisor
+    if s>=segments: s=segments - 1
+    return s
     
+def BuildSightings(sightings, namefield, datefield, startmonth, endmonth, segments):
+    seasonality = OrderedDict()
+    lines = ""
+    for s in sightings:
+        name = s[namefield]
+        month, day, year = map(int, s[datefield].split("/"))
+        if startmonth <= month and endmonth >= month: # skip any sighting outside the given range of months
+            segment = getsegment(day, segments)
+            if name not in seasonality: # set up empty sets for each section first (could be wasteful but 36 per name can't add up to that much)
+                seasonality[name] = {}
+                for m in range(startmonth, endmonth+1):
+                    seasonality[name][m] = {}
+                    for n in range(segments):
+                        seasonality[name][m][n] = set()
+            
+            seasonality[name][month][segment].add(year)
+    for s in seasonality:
+        line = "" + s
+        for m in range(startmonth, endmonth+1):
+            for n in range(segments):
+                line += "," + str(len(seasonality[s][m][n]))
+        lines += line + "\n"
+    return lines
+        
     
-def BuildSightings(csvfile, namefield, datefield, startmonth, endmonth, numberofsegments):
-    def MakeSighting(fields):
-        return Sighting(fields, namefield, datefield, startmonth, endmonth, numberofsegments)
-    sightings = OrderedDict()
-    for s in map(MakeSighting, csvfile):
-        if s.name not in sightings:
-            sightings[s.name] = {}
-        if s.cell() not in sightings[s.name]:
-            sightings[s.name][s.cell()] = [s.year]
-        else:
-            sightings[s.name][s.cell()].append(s.year)
-    results = ""
-    for s in sightings.keys():
-        line = s + ","
-        for cell in xrange(0, NumberOfCells(startmonth, endmonth, numberofsegments)):
-            if cell in sightings[s]:
-                line += str(len(set(sightings[s][cell]))) + ","
-            else:
-                line += "0,"
-        results += "%s\n" % (line.rstrip(","))
-    return results
+if __name__=="__main__":
+    csv = csv.reader(file(sys.argv[1]))
+    print BuildSightings(csv, int(sys.argv[2])-1, int(sys.argv[3])-1, int(sys.argv[4]), int(sys.argv[5]), int(sys.argv[6]))

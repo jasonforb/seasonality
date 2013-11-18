@@ -1,8 +1,62 @@
+<html>
+<head>
+	<title>Seasonality Charter</title>
+</head>
+<body>
+	<p>This will build a csv file that attempts to model seasonality data based on an upload of a database (also in csv format).</p>
+	<p>Hopefully it's fairly self-explanatory. You need a file with names and dates at minimum. Select the file. 
+		Count the fields and find the one with the name and the one with the date and fill those numbers in. 
+		For example, an AviSys export is 1 and 5 and an eBird download is 2 and 11.
+		Next, pick the months to include.
+		Finally, pick how many segments to break each month into (1 means the whole month, 2 means 1-14 and 15-end, etc).
+		If the month doesn't break evenly, the final segment will be slightly longer. Submit and you should download a file with the results.
+		Name and then number of years reported per segment.</p>	
 <form action="seasonalitybuilder.py" method="post" enctype="multipart/form-data">
-File: <input type="file" name="csvfile" />
+File: <input type="file" name="csvfile" /><br/>
 Name field: <input type="text" name="namefield"><br>
 Date field: <input type="text" name="datefield"><br>
-Starting month: <input type="text" name="startingmonth"><br>
-Ending month: <input type="text" name="endingmonth"><br>
-Segments per month: <input type="text" name="segments">
+Starting month: 
+<select name="startingmonth">
+	<option value="1">January</option>
+	<option value="2">February</option>
+	<option value="3">March</option>
+	<option value="4">April</option>
+	<option value="5">May</option>
+	<option value="6">June</option>
+	<option value="7">July</option>
+	<option value="8">August</option>
+	<option value="9">September</option>
+	<option value="10">October</option>
+	<option value="11">November</option>
+	<option value="12">December</option>
+</select><br/>
+Ending month: 
+<select name="endingmonth">
+	<option value="1">January</option>
+	<option value="2">February</option>
+	<option value="3">March</option>
+	<option value="4">April</option>
+	<option value="5">May</option>
+	<option value="6">June</option>
+	<option value="7">July</option>
+	<option value="8">August</option>
+	<option value="9">September</option>
+	<option value="10">October</option>
+	<option value="11">November</option>
+	<option value="12" selected="selected">December</option>
+</select><br/>
+Segments per month: <select name="segments">
+		<option>1</option>
+		<option>2</option>
+		<option>3</option>
+		<option>4</option>
+		<option>5</option>
+		<option>6</option>
+		<option>7</option>
+		<option>10</option>
+		<option>14</option>
+		<option>15</option>
+		<option value="31">daily</option>
+	</select><br/>
 <input type="submit" /></form>
+</body></html>
